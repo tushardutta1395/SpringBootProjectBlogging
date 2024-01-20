@@ -28,7 +28,7 @@ public class SeedData implements CommandLineRunner {
     private AuthorityService authorityService;
 
     @Override
-    public void run(final String... args) throws Exception {
+    public void run(final String... args) {
 
         for (final var privilege : Privileges.values()) {
             final var authority = new Authority();

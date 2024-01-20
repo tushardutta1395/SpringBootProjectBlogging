@@ -29,7 +29,7 @@ public class AccountService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public Account save(final Account account) {
+    public void save(final Account account) {
         account.setPassword(passwordEncoder.encode(account.getPassword()));
         if (account.getRole() == null) {
             account.setRole(Roles.USER.getRole());
@@ -38,7 +38,7 @@ public class AccountService implements UserDetailsService {
             final var path = photo_prefix.replace("**", "images/person.png");
             account.setPhoto(path);
         }
-        return accountRepository.save(account);
+        accountRepository.save(account);
     }
 
     @Override

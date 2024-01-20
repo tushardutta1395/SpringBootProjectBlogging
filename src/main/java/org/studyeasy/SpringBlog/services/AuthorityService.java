@@ -13,8 +13,8 @@ public class AuthorityService {
     @Autowired
     private AuthorityRepository authorityRepository;
 
-    public Authority save(final Authority authority) {
-        return authorityRepository.save(authority);
+    public void save(final Authority authority) {
+        authorityRepository.save(authority);
     }
 
     public Optional<Authority> findById(final Long id) {

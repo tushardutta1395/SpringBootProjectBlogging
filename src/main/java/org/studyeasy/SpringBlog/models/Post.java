@@ -36,6 +36,6 @@ public class Post {
     private LocalDateTime updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = true)
+    @JoinColumn(name = "account_id", referencedColumnName = "id")
     private Account account;
 }

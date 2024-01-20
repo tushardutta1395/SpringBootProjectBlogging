@@ -32,9 +32,6 @@ public class PostController {
         if (optionalPost.isPresent()) {
             final var post = optionalPost.get();
             model.addAttribute("post", post);
-            // get username of current logged in session user
-            // final var authUsername =
-            // SecurityContextHolder.getContext().getAuthentication().getName();
             final var authUser = principal != null ? principal.getName() : "email";
             if (authUser.equals(post.getAccount().getEmail())) {
                 model.addAttribute("isOwner", true);

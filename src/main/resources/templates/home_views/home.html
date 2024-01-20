@@ -3,13 +3,14 @@
 
 <head th:replace="~{/fragments/head :: head}">
 
+  <title></title>
 <body class="sub_page">
 
   <div class="hero_area">
     <div class="bg-box">
       <img th:src="@{/images/nav-bg.jpg}" alt="">
     </div>
-    <header th:replace="~{/fragments/header :: header}">
+    <header th:replace="~{/fragments/header :: header}"></header>
   </div>
 
   <!-- about section -->
@@ -62,7 +63,7 @@
           th:text="'Author: ' + ${post.account.firstName} + ' | Created At: ' + ${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')} + ' | Updated At: ' + ${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}">
         </h5>
         <p th:utext="${post.body}">Body</p>
-        <hr color="grey" />
+        <hr/>
       </div>
     </div>
 
@@ -80,7 +81,7 @@
 
   <!-- end about section -->
 
-  <footer th:replace="~{/fragments/footer :: footer}">
+  <footer th:replace="~{/fragments/footer :: footer}"></footer>
 
 </body>
 

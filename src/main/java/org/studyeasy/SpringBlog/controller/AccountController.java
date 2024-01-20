@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +67,7 @@ public class AccountController {
     }
 
     @GetMapping("/login")
-    public String login(final Model model) {
+    public String login() {
         return "account_views/login";
     }
 
@@ -95,16 +96,21 @@ public class AccountController {
         final var authUser = principal != null ? principal.getName() : "email";
         final var optionalAccount = accountService.findOneByEmail(authUser);
         if (optionalAccount.isPresent()) {
-            final var account_by_id = accountService.findById(account.getId()).get();
-            account_by_id.setAge(account.getAge());
-            account_by_id.setDateOfBirth(account.getDateOfBirth());
-            account_by_id.setFirstName(account.getFirstName());
-            account_by_id.setLastName(account.getLastName());
-            account_by_id.setGender(account.getGender());
-            account_by_id.setPassword(account.getPassword());
-            accountService.save(account_by_id);
-            SecurityContextHolder.clearContext();
-            return "redirect:/";
+            final var optional_account_by_id = accountService.findById(account.getId());
+            if(optional_account_by_id.isPresent()) {
+                final var account_by_id = optional_account_by_id.get();
+                account_by_id.setAge(account.getAge());
+                account_by_id.setDateOfBirth(account.getDateOfBirth());
+                account_by_id.setFirstName(account.getFirstName());
+                account_by_id.setLastName(account.getLastName());
+                account_by_id.setGender(account.getGender());
+                account_by_id.setPassword(account.getPassword());
+                accountService.save(account_by_id);
+                SecurityContextHolder.clearContext();
+                return "redirect:/";
+            } else {
+                return "redirect:/?error";
+            }
         } else {
             return "redirect:/?error";
         }
@@ -118,7 +124,7 @@ public class AccountController {
             redirectAttributes.addFlashAttribute("error", "No file uploaded");
             return "redirect:/profile";
         } else {
-            final var fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+            final var fileName = StringUtils.cleanPath(Objects.requireNonNull(multipartFile.getOriginalFilename()));
             try {
                 final var length = 10;
                 final var useLetters = true;
@@ -134,10 +140,15 @@ public class AccountController {
                 final var optionalAccount = accountService.findOneByEmail(authUser);
                 if (optionalAccount.isPresent()) {
                     final var account = optionalAccount.get();
-                    final var account_by_id = accountService.findById(account.getId()).get();
-                    final var relativeFileLocation = photo_prefix.replace("**", "uploads/" + finalPhotoName);
-                    account_by_id.setPhoto(relativeFileLocation);
-                    accountService.save(account_by_id);
+                    final var optional_account_by_id = accountService.findById(account.getId());
+                    if (optional_account_by_id.isPresent()) {
+                        final var account_by_id = optional_account_by_id.get();
+                        final var relativeFileLocation = photo_prefix.replace("**", "uploads/" + finalPhotoName);
+                        account_by_id.setPhoto(relativeFileLocation);
+                        accountService.save(account_by_id);
+                    } else {
+                        return "redirect:/profile?error";
+                    }
                 }
                 try {
                     TimeUnit.SECONDS.sleep(1);
@@ -146,38 +157,43 @@ public class AccountController {
                 }
                 return "redirect:/profile";
             } catch (final Exception e) {
-                e.printStackTrace();
+                return "redirect:/profile?error";
             }
         }
-        return "redirect:/profile?error";
     }
 
     @GetMapping("/forgot-password")
-    public String forgot_password(final Model model) {
+    public String forgot_password() {
         return "account_views/forgot_password";
     }
 
     @PostMapping("/reset-password")
     public String reset_password(@RequestParam("email") final String _email,
-            final RedirectAttributes redirectAttributes, final Model model) {
+            final RedirectAttributes redirectAttributes) {
         final var optionalAccount = accountService.findOneByEmail(_email);
         if (optionalAccount.isPresent()) {
-            final var account = accountService.findById(optionalAccount.get().getId()).get();
-            final var resetToken = UUID.randomUUID().toString();
-            account.setToken(resetToken);
-            account.setPassword_reset_token_expiry(
-                    LocalDateTime.now().plusMinutes(password_token_timeout));
-            accountService.save(account);
-            final var reset_message = "This is the reset password link: " + site_domain + "change-password?token="
-                    + resetToken;
-            final var emailDetails = new EmailDetails(account.getEmail(), reset_message,
-                    "Reset password StudyEasy demo");
-            if (!emailService.sendSimpleEmail(emailDetails)) {
-                redirectAttributes.addFlashAttribute("error", "Error while sending email, contact admin");
+            final var optional_account = accountService.findById(optionalAccount.get().getId());
+            if (optional_account.isPresent()) {
+                final var account = optional_account.get();
+                final var resetToken = UUID.randomUUID().toString();
+                account.setToken(resetToken);
+                account.setPassword_reset_token_expiry(
+                        LocalDateTime.now().plusMinutes(password_token_timeout));
+                accountService.save(account);
+                final var reset_message = "This is the reset password link: " + site_domain + "change-password?token="
+                        + resetToken;
+                final var emailDetails = new EmailDetails(account.getEmail(), reset_message,
+                        "Reset password StudyEasy demo");
+                if (!emailService.sendSimpleEmail(emailDetails)) {
+                    redirectAttributes.addFlashAttribute("error", "Error while sending email, contact admin");
+                    return "redirect:/forgot-password";
+                }
+                redirectAttributes.addFlashAttribute("message", "Password reset email sent");
+                return "redirect:/login";
+            } else {
+                redirectAttributes.addFlashAttribute("error", "No user found with the email supplied");
                 return "redirect:/forgot-password";
             }
-            redirectAttributes.addFlashAttribute("message", "Password reset email sent");
-            return "redirect:/login";
         } else {
             redirectAttributes.addFlashAttribute("error", "No user found with the email supplied");
             return "redirect:/forgot-password";
@@ -187,20 +203,26 @@ public class AccountController {
     @GetMapping("/change-password")
     public String change_password(final Model model, @RequestParam("token") final String token,
             final RedirectAttributes redirectAttributes) {
-        if (token.equals("")) {
+        if (token.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Invalid Token");
             return "redirect:/forgot-password";
         }
         final var optionalAccount = accountService.findByToken(token);
         if (optionalAccount.isPresent()) {
-            final var account = accountService.findById(optionalAccount.get().getId()).get();
-            final var now = LocalDateTime.now();
-            if (now.isAfter(optionalAccount.get().getPassword_reset_token_expiry())) {
-                redirectAttributes.addFlashAttribute("error", "Token Expired");
+            final var optional_account = accountService.findById(optionalAccount.get().getId());
+            if (optional_account.isPresent()) {
+                final var account = optional_account.get();
+                final var now = LocalDateTime.now();
+                if (now.isAfter(optionalAccount.get().getPassword_reset_token_expiry())) {
+                    redirectAttributes.addFlashAttribute("error", "Token Expired");
+                    return "redirect:/forgot-password";
+                }
+                model.addAttribute("account", account);
+                return "account_views/change_password";
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Invalid token");
                 return "redirect:/forgot-password";
             }
-            model.addAttribute("account", account);
-            return "account_views/change_password";
         }
         redirectAttributes.addFlashAttribute("error", "Invalid token");
         return "redirect:/forgot-password";
@@ -209,11 +231,17 @@ public class AccountController {
     @PostMapping("/change-password")
     public String post_change_password(@ModelAttribute final Account account,
             final RedirectAttributes redirectAttributes) {
-        final var account_by_id = accountService.findById(account.getId()).get();
-        account_by_id.setPassword(account.getPassword());
-        account_by_id.setToken("");
-        accountService.save(account_by_id);
-        redirectAttributes.addFlashAttribute("message", "Password updated");
-        return "redirect:/login";
+        final var optional_account_by_id = accountService.findById(account.getId());
+        if (optional_account_by_id.isPresent()) {
+            final var account_by_id = optional_account_by_id.get();
+            account_by_id.setPassword(account.getPassword());
+            account_by_id.setToken("");
+            accountService.save(account_by_id);
+            redirectAttributes.addFlashAttribute("message", "Password updated");
+            return "redirect:/login";
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Password not updated");
+            return "redirect:/login?error";
+        }
     }
 }

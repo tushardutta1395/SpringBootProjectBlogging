@@ -3,13 +3,14 @@
 
 <head th:replace="~{/fragments/head :: head}">
 
+  <title></title>
 <body class="sub_page">
 
   <div class="hero_area">
     <div class="bg-box">
       <img th:src="@{/images/nav-bg.jpg}" alt="">
     </div>
-    <header th:replace="~{/fragments/header :: header}">
+    <header th:replace="~{/fragments/header :: header}"></header>
   </div>
 
   <!-- about section -->
@@ -36,43 +37,43 @@
             <form action="#" th:action="@{/profile}" th:object="${account}" method="post">
               <div>
                 <input type="hidden" id="id" name="id" th:field="*{id}" />
-                <input id="email" name="email" type="email" th:field="*{email}" class="form-control" placeholder="Email"
-                  required />
+                <label for="email"></label><input id="email" name="email" type="email" th:field="*{email}" class="form-control" placeholder="Email"
+                                                  required />
                 <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="alert alert-danger" role="alert">
                   Email Error</p>
               </div>
               <div>
-                <input id="password" type="password" th:field="*{password}" class="form-control" placeholder="Password"
-                  required />
+                <label for="password"></label><input id="password" type="password" th:field="*{password}" class="form-control" placeholder="Password"
+                                                     required />
                 <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="alert alert-danger"
                   role="alert">Password Error</p>
               </div>
               <div>
-                <input id="firstName" type="text" th:field="*{firstName}" class="form-control" placeholder="First name"
-                  required />
+                <label for="firstName"></label><input id="firstName" type="text" th:field="*{firstName}" class="form-control" placeholder="First name"
+                                                      required />
                 <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="alert alert-danger"
                   role="alert">First Name Error</p>
               </div>
               <div>
-                <input id="lastName" type="text" th:field="*{lastName}" class="form-control" placeholder="Last name"
-                  required />
+                <label for="lastName"></label><input id="lastName" type="text" th:field="*{lastName}" class="form-control" placeholder="Last name"
+                                                     required />
                 <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="alert alert-danger"
                   role="alert">Last Name Error</p>
               </div>
               <div>
-                <input id="age" type="number" th:field="*{age}" min="18" max="99" class="form-control" placeholder="Age"
-                  required />
+                <label for="age"></label><input id="age" type="number" th:field="*{age}" min="18" max="99" class="form-control" placeholder="Age"
+                                                required />
                 <p th:if="${#fields.hasErrors('age')}" th:errors="*{age}" class="alert alert-danger" role="alert">Age
                   Error</p>
               </div>
               <div>
-                <input id="dateOfBirth" type="date" th:field="*{dateOfBirth}" class="form-control"
-                  placeholder="Date of Birth" required />
+                <label for="dateOfBirth"></label><input id="dateOfBirth" type="date" th:field="*{dateOfBirth}" class="form-control"
+                                                        placeholder="Date of Birth" required />
                 <p th:if="${#fields.hasErrors('dateOfBirth')}" th:errors="*{dateOfBirth}" class="alert alert-danger"
                   role="alert">Date of Birth Error</p>
               </div>
               <div>
-                <select id="gender" name="gender" th:field="*{gender}" class="form-control">
+                <label for="gender"></label><select id="gender" name="gender" th:field="*{gender}" class="form-control">
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Others">Others</option>
@@ -94,7 +95,7 @@
 
   <!-- end about section -->
 
-  <footer th:replace="~{/fragments/footer :: footer}">
+  <footer th:replace="~{/fragments/footer :: footer}"></footer>
 
 </body>
 
